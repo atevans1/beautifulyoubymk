@@ -1,0 +1,9 @@
+{
+  "posts": [
+    {"slug":"understanding-boundaries","type":"guide","category":"Guidance","title":"Understanding boundaries","excerpt":"Learn how healthy boundaries can support your safety and wellbeing.","status":"draft"},
+    {"slug":"preparing-to-leave-safely","type":"guide","category":"Safety planning","title":"Preparing to leave safely","excerpt":"Practical information for thinking through your next step.","status":"draft"},
+    {"slug":"healing-after-abuse","type":"article","category":"Healing","title":"Healing after abuse","excerpt":"Gentle, supportive ideas for the road ahead.","status":"draft"},
+    {"slug":"rebuilding-financial-independence","type":"resource","category":"Independence","title":"Rebuilding financial independence","excerpt":"Resources for skills, work and a more stable future.","status":"draft"}
+  ],
+  "publishingNote":"Only reviewed and approved content should be changed to published status. Sensitive personal information must never be stored in public content."
+}
