@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /get-help.html
+Disallow: /admin/
+Disallow: /cases/
+Disallow: /beneficiaries/
+Sitemap: https://beautifulyoumk.com/sitemap.xml
