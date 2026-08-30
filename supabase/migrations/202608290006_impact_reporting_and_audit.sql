@@ -1,5 +1,5 @@
 -- Verified impact metrics and audit events.
-create table if not exists public.impact_metrics (
+create table if not exists beautiful_you.impact_metrics (
   id uuid primary key default gen_random_uuid(),
   metric_key text not null,
   metric_label text not null,
@@ -15,7 +15,7 @@ create table if not exists public.impact_metrics (
   check (period_end >= period_start)
 );
 
-create table if not exists public.activity_logs (
+create table if not exists beautiful_you.activity_logs (
   id uuid primary key default gen_random_uuid(),
   actor_id uuid references auth.users(id),
   action text not null,
@@ -25,8 +25,8 @@ create table if not exists public.activity_logs (
   created_at timestamptz not null default now()
 );
 
-alter table public.impact_metrics enable row level security;
-alter table public.activity_logs enable row level security;
-drop policy if exists "approved impact is public" on public.impact_metrics;
-create policy "approved impact is public" on public.impact_metrics for select using (approved = true);
+alter table beautiful_you.impact_metrics enable row level security;
+alter table beautiful_you.activity_logs enable row level security;
+drop policy if exists "approved impact is public" on beautiful_you.impact_metrics;
+create policy "approved impact is public" on beautiful_you.impact_metrics for select using (approved = true);
 -- Activity logs are private; no public policy is created.

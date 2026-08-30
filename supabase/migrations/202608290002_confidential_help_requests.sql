@@ -1,5 +1,5 @@
 -- Confidential help requests. Apply only after privacy/retention review.
-create table if not exists public.help_requests (
+create table if not exists beautiful_you.help_requests (
   id uuid primary key default gen_random_uuid(),
   request_reference text not null unique default ('BY-' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,10))),
   preferred_name text,
@@ -19,7 +19,7 @@ create table if not exists public.help_requests (
   updated_at timestamptz not null default now()
 );
 
-alter table public.help_requests enable row level security;
+alter table beautiful_you.help_requests enable row level security;
 -- No public select/insert/update policies are created intentionally.
 -- Submissions must use a server-side, rate-limited endpoint with validation.
 -- Case managers receive access only through an explicit least-privilege policy.

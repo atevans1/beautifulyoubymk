@@ -1,5 +1,5 @@
 -- Donations and partnership enquiries. Payment processing remains provider-agnostic.
-create table if not exists public.donation_campaigns (
+create table if not exists beautiful_you.donation_campaigns (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
   name text not null,
@@ -8,17 +8,17 @@ create table if not exists public.donation_campaigns (
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.donors (
+create table if not exists beautiful_you.donors (
   id uuid primary key default gen_random_uuid(),
   display_name text,
   email text,
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.donations (
+create table if not exists beautiful_you.donations (
   id uuid primary key default gen_random_uuid(),
-  donor_id uuid references public.donors(id) on delete set null,
-  campaign_id uuid references public.donation_campaigns(id) on delete set null,
+  donor_id uuid references beautiful_you.donors(id) on delete set null,
+  campaign_id uuid references beautiful_you.donation_campaigns(id) on delete set null,
   provider_name text,
   provider_reference text unique,
   amount_minor bigint,
@@ -29,7 +29,7 @@ create table if not exists public.donations (
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.partnership_enquiries (
+create table if not exists beautiful_you.partnership_enquiries (
   id uuid primary key default gen_random_uuid(),
   organisation_name text,
   contact_name text,
@@ -42,9 +42,9 @@ create table if not exists public.partnership_enquiries (
   updated_at timestamptz not null default now()
 );
 
-alter table public.donation_campaigns enable row level security;
-alter table public.donors enable row level security;
-alter table public.donations enable row level security;
-alter table public.partnership_enquiries enable row level security;
+alter table beautiful_you.donation_campaigns enable row level security;
+alter table beautiful_you.donors enable row level security;
+alter table beautiful_you.donations enable row level security;
+alter table beautiful_you.partnership_enquiries enable row level security;
 -- Public policies are intentionally omitted. Provider webhooks and admin reads
 -- must use authenticated server-side paths with finance/partnership permissions.
