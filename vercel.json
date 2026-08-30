@@ -1,0 +1,16 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {"source":"/about","destination":"/about.html"},
+    {"source":"/programmes","destination":"/programmes.html"},
+    {"source":"/gallery","destination":"/gallery.html"},
+    {"source":"/resources","destination":"/resources.html"},
+    {"source":"/get-help","destination":"/get-help.html"},
+    {"source":"/donate","destination":"/donate.html"},
+    {"source":"/partner","destination":"/partner.html"},
+    {"source":"/contact","destination":"/contact.html"},
+    {"source":"/privacy","destination":"/privacy.html"},
+    {"source":"/safeguarding","destination":"/safeguarding.html"}
+  ]
+}
