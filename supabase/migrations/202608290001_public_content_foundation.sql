@@ -1,6 +1,7 @@
 -- Beautiful You By M.K. public content foundation
 -- Apply only after confirming the target Supabase project.
-create extension if not exists pgcrypto;`r`ncreate schema if not exists beautiful_you;
+create extension if not exists pgcrypto;
+create schema if not exists beautiful_you;
 
 create table if not exists beautiful_you.user_roles (
   user_id uuid primary key references auth.users(id) on delete cascade,
