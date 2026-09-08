@@ -1,5 +1,6 @@
 {
   "cleanUrls": true,
+  "outputDirectory": ".",
   "trailingSlash": false,
   "rewrites": [
     {"source":"/about","destination":"/about.html"},
