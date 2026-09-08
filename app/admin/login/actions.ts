@@ -1,0 +1,4 @@
+'use server';
+import { redirect } from 'next/navigation';
+import { createClient } from '../../../lib/supabase/server';
+export async function signIn(formData: FormData) { const email=String(formData.get('email')??'').trim(); const password=String(formData.get('password')??''); if(!email||!password)redirect('/admin/login?error=missing'); const supabase=await createClient(); const {error}=await supabase.auth.signInWithPassword({email,password}); if(error)redirect('/admin/login?error=invalid'); const {data:{user}}=await supabase.auth.getUser(); if(!user)redirect('/admin/login?error=invalid'); const {data:member}=await supabase.schema('beautiful_you').from('members').select('status').eq('user_id',user.id).maybeSingle(); if(!member||member.status!=='active'){await supabase.auth.signOut();redirect('/admin/login?error=unauthorized')} redirect('/admin'); }
