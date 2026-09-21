@@ -13,5 +13,14 @@
     {"source":"/contact","destination":"/contact.html"},
     {"source":"/privacy","destination":"/privacy.html"},
     {"source":"/safeguarding","destination":"/safeguarding.html"}
+    ,{"source":"/admin","destination":"/admin/index.html"}
+    ,{"source":"/admin/members","destination":"/admin/members.html"}
+    ,{"source":"/admin/programmes","destination":"/admin/programmes.html"}
+    ,{"source":"/admin/gallery","destination":"/admin/gallery.html"}
+    ,{"source":"/admin/resources","destination":"/admin/resources.html"}
+    ,{"source":"/admin/help-requests","destination":"/admin/help-requests.html"}
+    ,{"source":"/admin/case-notes","destination":"/admin/case-notes.html"}
+    ,{"source":"/admin/content","destination":"/admin/content.html"}
+    ,{"source":"/members","destination":"/admin/members.html"}
   ]
 }
