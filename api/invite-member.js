@@ -1,6 +1,7 @@
+import {readAccessToken} from './_auth.js';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const token = readAccessToken(req);
   const { email, role = 'admin' } = req.body || {};
   if (!token || !email || !['admin','manager','editor'].includes(role)) return res.status(400).json({ error: 'Valid sign-in, email and role are required.' });
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
