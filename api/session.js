@@ -8,7 +8,8 @@ export default async function handler(req,res){
   if(!auth.ok){clearSessionCookie(res);return res.status(401).json({error:'Sign-in expired.'});}
   const user=await auth.json();
   const membership=await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&status=eq.active&select=role,status`,{headers:{apikey:service,Authorization:`Bearer ${service}`,'Accept-Profile':'beautiful_you'}});
-  const rows=membership.ok?await membership.json():[];
+  if(!membership.ok) return res.status(503).json({error:'Supabase cannot read beautiful_you.members. Check that the schema is exposed in Supabase Data API and that the server key is configured in Vercel.'});
+  const rows=await membership.json();
   if(rows.length===0) return res.status(403).json({error:'Beautiful You membership is required.'});
   return res.status(200).json({user:{id:user.id,email:user.email},role:rows[0].role,status:rows[0].status});
 }
