@@ -11,12 +11,12 @@ export default async function handler(req, res) {
   const who = await fetch(`${url}/auth/v1/user`, { headers: { apikey: anon, Authorization: `Bearer ${token}` } });
   if (!who.ok) return res.status(401).json({ error: 'Sign-in expired.' });
   const user = await who.json();
-  const owner = await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&role=eq.owner&status=eq.active&select=id`, { headers: { apikey: service, Authorization: `Bearer ${service}`, 'Accept-Profile':'beautiful_you' } });
+  const owner = await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&role=eq.owner&status=eq.active&select=id`, { headers: { apikey: service,  'Accept-Profile':'beautiful_you' } });
   if (!owner.ok || (await owner.json()).length === 0) return res.status(403).json({ error: 'Owner access required.' });
-  const invited = await fetch(`${url}/auth/v1/admin/invite`, { method:'POST', headers:{ apikey: service, Authorization:`Bearer ${service}`, 'Content-Type':'application/json' }, body:JSON.stringify({ email }) });
+  const invited = await fetch(`${url}/auth/v1/admin/invite`, { method:'POST', headers:{ apikey: service,  'Content-Type':'application/json' }, body:JSON.stringify({ email }) });
   const invitedData = await invited.json();
   if (!invited.ok) return res.status(400).json({ error: invitedData.msg || invitedData.message || 'Invitation failed.' });
-  const insert = await fetch(`${url}/rest/v1/members`, { method:'POST', headers:{ apikey: service, Authorization:`Bearer ${service}`, 'Content-Type':'application/json', 'Content-Profile':'beautiful_you', Prefer:'return=minimal' }, body:JSON.stringify({ user_id: invitedData.id, role, status:'invited' }) });
+  const insert = await fetch(`${url}/rest/v1/members`, { method:'POST', headers:{ apikey: service,  'Content-Type':'application/json', 'Content-Profile':'beautiful_you', Prefer:'return=minimal' }, body:JSON.stringify({ user_id: invitedData.id, role, status:'invited' }) });
   if (!insert.ok) return res.status(400).json({ error: 'Invitation sent, but role assignment needs review.' });
   return res.status(200).json({ message: `Invitation sent to ${email}.`, role });
 }

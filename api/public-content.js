@@ -6,7 +6,7 @@ export default async function handler(req,res){
   const url=process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key=process.env.SUPABASE_ANON_KEY||process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url||!key) return res.status(500).json({error:'Public content is not configured.'});
-  const result=await fetch(`${url}/rest/v1/${config.table}?select=*&${config.filter}`,{headers:{apikey:key,Authorization:`Bearer ${key}`,'Accept-Profile':'beautiful_you'}});
+  const result=await fetch(`${url}/rest/v1/${config.table}?select=*&${config.filter}`,{headers:{apikey:key,'Accept-Profile':'beautiful_you'}});
   if(!result.ok) return res.status(502).json({error:'Published content is temporarily unavailable.'});
   res.setHeader('Cache-Control','public, s-maxage=60, stale-while-revalidate=300');
   return res.status(200).json(await result.json());

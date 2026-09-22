@@ -11,7 +11,7 @@ export default async function handler(req,res){
   const auth=await fetch(`${url}/auth/v1/user`,{headers:{apikey:anon,Authorization:`Bearer ${token}`}});
   if(!auth.ok) return res.status(401).json({error:'Sign-in expired.'});
   const user=await auth.json();
-  const serviceHeaders={apikey:service,Authorization:`Bearer ${service}`,'Accept-Profile':'beautiful_you'};
+  const serviceHeaders={apikey:service,'Accept-Profile':'beautiful_you'};
   const membership=await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&status=eq.active&select=role`,{headers:serviceHeaders});
   const roles=membership.ok?await membership.json():[];
   if(!roles.some(row=>['owner','admin','manager','editor'].includes(row.role))) return res.status(403).json({error:'Content access denied.'});

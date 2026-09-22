@@ -7,7 +7,7 @@ export default async function handler(req,res){
   const auth=await fetch(`${url}/auth/v1/user`,{headers:{apikey:anon,Authorization:`Bearer ${token}`}});
   if(!auth.ok){clearSessionCookie(res);return res.status(401).json({error:'Sign-in expired.'});}
   const user=await auth.json();
-  const membership=await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&status=eq.active&select=role,status`,{headers:{apikey:service,Authorization:`Bearer ${service}`,'Accept-Profile':'beautiful_you'}});
+  const membership=await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&status=eq.active&select=role,status`,{headers:{apikey:service,'Accept-Profile':'beautiful_you'}});
   if(!membership.ok) return res.status(503).json({error:'Supabase cannot read beautiful_you.members. Check that the schema is exposed in Supabase Data API and that the server key is configured in Vercel.'});
   const rows=await membership.json();
   if(rows.length===0) return res.status(403).json({error:'Beautiful You membership is required.'});

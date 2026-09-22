@@ -4,7 +4,7 @@ export default async function handler(req,res){
   if(!token||!url||!anon||!service) return res.status(401).json({error:'Authorised access required.'});
   const auth=await fetch(`${url}/auth/v1/user`,{headers:{apikey:anon,Authorization:`Bearer ${token}`}});
   if(!auth.ok) return res.status(401).json({error:'Sign-in expired.'});
-  const user=await auth.json(),headers={apikey:service,Authorization:`Bearer ${service}`,'Accept-Profile':'beautiful_you'};
+  const user=await auth.json(),headers={apikey:service,'Accept-Profile':'beautiful_you'};
   const ownerCheck=await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&role=eq.owner&status=eq.active&select=id,user_id`,{headers});
   const ownerRows=ownerCheck.ok?await ownerCheck.json():[];
   if(ownerRows.length===0) return res.status(403).json({error:'Owner access required.'});

@@ -11,7 +11,7 @@ export default async function handler(req,res){
   const url=process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL;
   const service=process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!url||!service) return res.status(500).json({error:'Enquiries are not configured.'});
-  const result=await fetch(`${url}/rest/v1/${config.table}`,{method:'POST',headers:{apikey:service,Authorization:`Bearer ${service}`,'Content-Type':'application/json','Content-Profile':'beautiful_you',Prefer:'return=minimal'},body:JSON.stringify(config.map(input))});
+  const result=await fetch(`${url}/rest/v1/${config.table}`,{method:'POST',headers:{apikey:service,'Content-Type':'application/json','Content-Profile':'beautiful_you',Prefer:'return=minimal'},body:JSON.stringify(config.map(input))});
   if(!result.ok) return res.status(500).json({error:'We could not send your enquiry.'});
   return res.status(200).json({message:'Thank you. Your enquiry was received.'});
 }
