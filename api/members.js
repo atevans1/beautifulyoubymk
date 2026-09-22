@@ -9,7 +9,15 @@ export default async function handler(req,res){
   const ownerRows=ownerCheck.ok?await ownerCheck.json():[];
   if(ownerRows.length===0) return res.status(403).json({error:'Owner access required.'});
   const endpoint=`${url}/rest/v1/members`;
-  if(req.method==='GET'){const result=await fetch(`${endpoint}?select=*&order=created_at.desc`,{headers});return res.status(result.status).json(await result.json())}
+  if(req.method==='GET'){
+    const result=await fetch(`${endpoint}?select=*&order=created_at.desc`,{headers});
+    if(!result.ok)return res.status(result.status).json(await result.json());
+    const members=await result.json();
+    const authUsers=await fetch(`${url}/auth/v1/admin/users?page=1&per_page=1000`,{headers:{apikey:service}});
+    const userById=new Map();
+    if(authUsers.ok){const data=await authUsers.json();for(const account of data.users||[])userById.set(account.id,account.email||'');}
+    return res.status(200).json(members.map(member=>({...member,email:userById.get(member.user_id)||null})));
+  }
   if(!['PATCH','DELETE'].includes(req.method)||!req.body?.id) return res.status(400).json({error:'Member and action are required.'});
   const targetResult=await fetch(`${endpoint}?id=eq.${encodeURIComponent(req.body.id)}&select=id,user_id,role`,{headers});
   const targetRows=targetResult.ok?await targetResult.json():[];

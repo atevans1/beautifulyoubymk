@@ -1,1 +1,32 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Help requests | Beautiful You By M.K.</title><meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="../site.css"><style>.request{padding:1rem;margin:1rem 0;border:1px solid var(--line);border-radius:12px;background:var(--paper)}.request select{padding:.5rem;margin:.5rem 0}</style></head><body><main class="login"><a class="back" href="../index.html">← Public site</a><p class="eyebrow">Restricted inbox</p><h1>Help requests</h1><p class="lead">Only active owners, admins, and managers can view this inbox.</p><div id="list">Loading…</div><p><a href="content.html">Content management</a> · <a href="members.html">Manage members</a></p></main><script src="session-guard.js"></script><script>const list=document.querySelector('#list');async function load(){const r=await fetch('/api/help-requests',{credentials:'same-origin'}),d=await r.json();if(!r.ok)throw Error(d.error||'Unable to load requests');list.innerHTML=d.length?d.map(x=>`<article class="request"><strong>${x.request_reference}</strong><p>${x.short_description||x.support_needed||'No description'}</p><small>${new Date(x.created_at).toLocaleString()} · ${x.safe_email||x.safe_phone||'No contact supplied'}</small><br><select data-id="${x.id}"><option>${x.status}</option><option>under_review</option><option>contacted</option><option>closed</option></select></article>`).join(''):'<p>No requests yet.</p>';list.querySelectorAll('select').forEach(s=>s.onchange=async()=>{await fetch('/api/help-requests',{method:'PATCH',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:s.dataset.id,status:s.value})})})}load().catch(e=>list.textContent=e.message)</script></body></html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Help requests | Beautiful You By M.K.</title><meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="../site.css"><style>.request{padding:1rem;margin:1rem 0;border:1px solid var(--line);border-radius:12px;background:var(--paper)}.request select{padding:.5rem;margin:.5rem 0}.request-actions{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}</style></head>
+<body><main><a class="back" href="/admin">← Admin workspace</a><p class="eyebrow">Restricted inbox</p><h1>Help requests</h1><p class="lead">Only active owners, admins and managers can review these confidential submissions.</p><div id="list" aria-live="polite">Loading…</div><p><a href="/admin/case-notes">Case notes</a> · <a href="/admin/content">Content management</a></p></main>
+<script src="session-guard.js"></script><script>
+const list=document.querySelector('#list'),allowedStatuses=['under_review','contacted','assessment','approved','support_active','follow_up','closed','declined','archived'];
+const escapeHtml=value=>{const node=document.createElement('div');node.textContent=String(value??'');return node.innerHTML};
+async function load(){
+  list.textContent='Loading…';
+  try{
+    const [requestResponse,caseResponse]=await Promise.all([fetch('/api/help-requests',{credentials:'same-origin'}),fetch('/api/cases',{credentials:'same-origin'})]);
+    const [requests,cases]=await Promise.all([requestResponse.json(),caseResponse.json()]);
+    if(!requestResponse.ok)throw Error(requests.error||'Unable to load requests.');
+    if(!caseResponse.ok)throw Error(cases.error||'Unable to load related cases.');
+    const caseByRequest=new Map(cases.map(item=>[item.help_request_id,item]));
+    list.innerHTML=requests.length?requests.map(item=>{
+      const related=caseByRequest.get(item.id);
+      const statusOptions=[...new Set([item.status,...allowedStatuses])].map(status=>`<option value="${escapeHtml(status)}" ${item.status===status?'selected':''}>${escapeHtml(status.replaceAll('_',' '))}</option>`).join('');
+      return `<article class="request"><strong>${escapeHtml(item.request_reference)}</strong><p>${escapeHtml(item.short_description||item.support_needed||'No description')}</p><small>${new Date(item.created_at).toLocaleString()} · ${escapeHtml(item.safe_email||item.safe_phone||'No contact supplied')}</small><div class="request-actions"><label>Status <select data-request-id="${escapeHtml(item.id)}">${statusOptions}</select></label>${related?`<a class="button" href="/admin/case-notes?case_id=${encodeURIComponent(related.id)}">Open ${escapeHtml(related.case_reference)} notes</a>`:`<button class="button create-case" type="button" data-request-id="${escapeHtml(item.id)}" data-summary="${escapeHtml(item.short_description||'')}">Create case</button>`}</div></article>`;
+    }).join(''):'<p>No requests yet.</p>';
+    list.querySelectorAll('select[data-request-id]').forEach(select=>select.addEventListener('change',async()=>{
+      try{const response=await fetch('/api/help-requests',{method:'PATCH',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:select.dataset.requestId,status:select.value})}),data=await response.json();if(!response.ok)throw Error(data.error||'Status update failed.');}
+      catch(error){list.insertAdjacentHTML('afterbegin',`<p class="status">${escapeHtml(error.message)}</p>`);load();}
+    }));
+    list.querySelectorAll('.create-case').forEach(button=>button.addEventListener('click',async()=>{
+      button.disabled=true;button.textContent='Creating case…';
+      try{const response=await fetch('/api/cases',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({help_request_id:button.dataset.requestId,support_summary:button.dataset.summary})}),data=await response.json();if(!response.ok)throw Error(data.error||'Could not create case.');location.href=`/admin/case-notes?case_id=${encodeURIComponent(data[0].id)}`;}
+      catch(error){button.disabled=false;button.textContent=error.message.includes('already exist')?'Reload to open existing case':'Create case';list.insertAdjacentHTML('afterbegin',`<p class="status">${escapeHtml(error.message)}</p>`);}
+    }));
+  }catch(error){list.textContent=error.message;}
+}
+load();
+</script><script src="/theme.js" defer></script></body></html>

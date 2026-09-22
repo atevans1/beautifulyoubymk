@@ -1,20 +1,21 @@
-# Secure administration boundary
+# Beautiful You administration
 
-The future admin application must be served behind authentication and must never be exposed as a public static page.
+Admin pages are static files, so the browser can request their HTML. Private data is returned only by server-side API routes after those routes validate the Supabase session and the Beautiful You membership. The browser must never receive the Supabase Secret key.
 
-## Roles
+## Roles enforced by the current API
 
-- `super_admin`: full administration and role assignment
-- `administrator`: operational management, excluding role assignment
-- `content_manager`: posts, programmes, gallery and public settings only
-- `finance_manager`: donations and finance records only
-- `case_manager`: help requests, beneficiaries and cases only
-- `volunteer_manager`: volunteer and professional applications only
+- `owner`: full access, including member invitations and role changes.
+- `admin`: manage content, enquiries and support operations; cannot invite or manage members.
+- `manager`: manage content, enquiries, help requests and cases; cannot invite or manage members or manage giving/impact data.
+- `editor`: create and edit draft programmes and resources; cannot publish, delete, or manage gallery items.
 
-## Initial route boundary
+## Current access paths
 
-All `/admin/*` routes require an authenticated session and a matching role. Public content queries must filter to approved/published records server-side. No browser code may use a Supabase service-role key.
+- `/admin/login`: sign in with an approved Supabase account.
+- `/admin`: workspace links.
+- `/admin/members`: owner-only invitations and membership management.
+- `/admin/enquiries`: partnership, volunteer, professional and giving enquiries.
+- `/admin/help-requests` and `/admin/case-notes`: restricted support operations.
+- `/admin/programmes`, `/admin/resources` and `/admin/gallery`: content editors.
 
-## Before activation
-
-Confirm the Supabase project, administrator accounts, recovery email, retention policy and emergency escalation process. Then add authenticated write policies and server-side session checks.
+The APIs use `beautiful_you.members` as the role source. Because server routes use the server-only Secret key, each route must continue checking the authenticated user and allowed role before accessing private tables.

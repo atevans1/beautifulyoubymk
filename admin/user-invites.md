@@ -1,19 +1,17 @@
-# Owner-only administrator invites
+# Owner-only member invitations
 
-## Approved flow
+## Current flow
 
-1. A signed-in user reaches **Admin → Users** only when `beautiful_you.members` contains an active `owner` record for that user.
-2. The owner enters an invitee email and selects an allowed role: `admin`, `manager` or `editor`.
-3. A server-side action validates the owner session, rate-limits the request and sends the Supabase Auth invitation.
-4. The invitee creates their own password through the Supabase recovery/invite flow.
-5. The server activates or creates the invitee’s `beautiful_you.members` record with the approved role.
-6. Every invite, acceptance, role change and suspension is recorded in a private audit trail.
+1. The owner signs in and opens **Admin → Members**.
+2. The owner enters an email address and chooses `admin`, `manager` or `editor`.
+3. `/api/invite-member` verifies the caller's Supabase user and active `owner` row before sending an Auth invitation.
+4. The invitee opens the email link, sets a password on `/admin/accept-invite`, and the server activates the preassigned membership.
+5. The new member can then sign in and use the pages allowed for their role.
 
-## Non-negotiable safeguards
+## Safeguards and known operational gaps
 
-- No public “create admin” form.
-- No automatic admin role for ordinary signup.
-- Never trust a role supplied by browser JavaScript.
-- Never expose the Supabase service-role key to the browser.
-- Do not grant access to LOI Intelligence tables or another brand’s schema.
-- Require owner confirmation before changing or suspending an administrator.
+- There is no public signup flow that grants Beautiful You roles.
+- The browser never receives the Supabase Secret key.
+- Every private API checks the session and role server-side before using the Secret key.
+- Invitations depend on Supabase email delivery and the redirect URL `https://www.beautifulyoumk.com/admin/accept-invite` being permitted in the Supabase Auth redirect URL settings. The homepage also routes invitation returns to the setup screen if Supabase falls back to the site URL.
+- Shared durable rate limiting and a complete private audit trail are not implemented yet.

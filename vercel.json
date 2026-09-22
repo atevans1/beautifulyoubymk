@@ -20,7 +20,9 @@
     ,{"source":"/admin/resources","destination":"/admin/resources.html"}
     ,{"source":"/admin/help-requests","destination":"/admin/help-requests.html"}
     ,{"source":"/admin/case-notes","destination":"/admin/case-notes.html"}
+    ,{"source":"/admin/accept-invite","destination":"/admin/accept-invite.html"}
     ,{"source":"/admin/content","destination":"/admin/content.html"}
+    ,{"source":"/admin/enquiries","destination":"/admin/enquiries.html"}
     ,{"source":"/members","destination":"/admin/members.html"}
   ]
 }

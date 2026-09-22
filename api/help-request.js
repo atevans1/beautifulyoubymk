@@ -1,7 +1,9 @@
 export default async function handler(req,res){
   if(req.method!=='POST') return res.status(405).json({error:'Method not allowed'});
-  const {contact,message,urgent,consent}=req.body||{};
-  if(!contact||!message||consent!==true) return res.status(400).json({error:'Contact details, a message, and consent are required.'});
+  const contact=String(req.body?.contact||'').trim(),message=String(req.body?.message||'').trim(),urgent=req.body?.urgent,consent=req.body?.consent;
+  if(!contact||contact.length>254||!message||message.length>5000||consent!==true||!['true','false',true,false].includes(urgent)) return res.status(400).json({error:'Enter valid contact details and a message under 5,000 characters, then confirm consent.'});
+  if(contact.includes('@')&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) return res.status(400).json({error:'Enter a valid email address or phone number.'});
+  if(!contact.includes('@')&&!/^\+?[0-9().\s-]{7,25}$/.test(contact)) return res.status(400).json({error:'Enter a valid email address or phone number.'});
   const url=process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL;
   const service=process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!url||!service) return res.status(500).json({error:'Help requests are not configured yet.'});

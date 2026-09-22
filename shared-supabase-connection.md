@@ -13,7 +13,7 @@ Beautiful You is an independent website, repository and deployment. It uses the 
 
 ## Connection contract
 
-Use the existing project URL and public anon key through environment variables. Privileged operations belong in server-side routes only. Do not commit credentials or service-role keys.
+Use the existing project URL and Supabase Publishable key for public access. Put the Supabase Secret key in the server-only `SUPABASE_SERVICE_ROLE_KEY` compatibility variable used by the current API routes. Send Publishable and Secret keys only in the `apikey` header; send a signed-in user's access token separately as `Authorization: Bearer <user-token>`. Never expose or commit the Secret key.
 
 ## Migration gate
 

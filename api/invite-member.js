@@ -2,8 +2,10 @@ import {readAccessToken} from './_auth.js';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const token = readAccessToken(req);
-  const { email, role = 'admin' } = req.body || {};
-  if (!token || !email || !['admin','manager','editor'].includes(role)) return res.status(400).json({ error: 'Valid sign-in, email and role are required.' });
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const role = String(req.body?.role || 'admin');
+  if (!token) return res.status(401).json({ error: 'Sign in as the owner before inviting a member.' });
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !['admin','manager','editor'].includes(role)) return res.status(400).json({ error: 'Enter a valid email address and role.' });
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -13,9 +15,10 @@ export default async function handler(req, res) {
   const user = await who.json();
   const owner = await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&role=eq.owner&status=eq.active&select=id`, { headers: { apikey: service,  'Accept-Profile':'beautiful_you' } });
   if (!owner.ok || (await owner.json()).length === 0) return res.status(403).json({ error: 'Owner access required.' });
-  const invited = await fetch(`${url}/auth/v1/admin/invite`, { method:'POST', headers:{ apikey: service,  'Content-Type':'application/json' }, body:JSON.stringify({ email }) });
+  const redirectTo='https://www.beautifulyoumk.com/admin/accept-invite';
+  const invited = await fetch(`${url}/auth/v1/invite?redirect_to=${encodeURIComponent(redirectTo)}`, { method:'POST', headers:{ apikey: service,  'Content-Type':'application/json' }, body:JSON.stringify({ email }) });
   const invitedData = await invited.json();
-  if (!invited.ok) return res.status(400).json({ error: invitedData.msg || invitedData.message || 'Invitation failed.' });
+  if (!invited.ok) return res.status(400).json({ error: invitedData.msg || invitedData.message || invitedData.error_description || invitedData.error || 'Invitation failed.' });
   const insert = await fetch(`${url}/rest/v1/members`, { method:'POST', headers:{ apikey: service,  'Content-Type':'application/json', 'Content-Profile':'beautiful_you', Prefer:'return=minimal' }, body:JSON.stringify({ user_id: invitedData.id, role, status:'invited' }) });
   if (!insert.ok) return res.status(400).json({ error: 'Invitation sent, but role assignment needs review.' });
   return res.status(200).json({ message: `Invitation sent to ${email}.`, role });
