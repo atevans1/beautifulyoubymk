@@ -1,5 +1,7 @@
 import {readAccessToken} from './_auth.js';
 
+export const config={api:{bodyParser:false}};
+
 const MAX_BYTES=10*1024*1024;
 const MIME_EXTENSIONS={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/avif':'avif'};
 

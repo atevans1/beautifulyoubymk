@@ -6,6 +6,8 @@
     {"source":"/about","destination":"/about.html"},
     {"source":"/programmes","destination":"/programmes.html"},
     {"source":"/gallery","destination":"/gallery.html"},
+    {"source":"/partner-enquiry","destination":"/partner-enquiry.html"},
+    {"source":"/donation-interest","destination":"/donation-interest.html"},
     {"source":"/resources","destination":"/resources.html"},
     {"source":"/get-help","destination":"/get-help.html"},
     {"source":"/donate","destination":"/donate.html"},
