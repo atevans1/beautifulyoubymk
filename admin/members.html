@@ -4,18 +4,18 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Members | Beautiful You By M.K.</title><meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="../site.css">
-  <style>.invite{padding:1.5rem;background:var(--sage);border-radius:16px;margin:1.5rem 0}.field input,.field select{padding:.8rem;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit}</style>
+  <style>.invite{padding:1.5rem;background:var(--sage);border-radius:16px;margin:1.5rem 0}.field input,.field select{padding:.8rem;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit}.temp-result{padding:1rem;margin:1rem 0;background:var(--sage);border-radius:12px;overflow-wrap:anywhere}.temp-result code{font-size:1.1rem;font-weight:700;user-select:all}</style>
 </head>
 <body>
   <main>
     <a class="back" href="/admin">← Admin workspace</a><p class="eyebrow">Owner workspace</p>
     <h1>Members</h1><p class="lead">Invite approved staff and manage their role and status. Your owner account cannot be changed here.</p>
-    <section class="invite"><h2>Invite a member</h2><form id="invite-form">
+    <section class="invite"><h2>Invite a member</h2><p>They’ll first verify their email using the invitation link. After their status becomes Active, set a one-time password below and share it separately. They must replace it before they can enter the admin area.</p><form id="invite-form">
       <label class="field">Email<input name="email" type="email" autocomplete="email" maxlength="254" required></label>
       <label class="field">Role<select name="role"><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option></select></label>
-      <button class="button" type="submit">Send invitation</button><p id="invite-status" class="status" hidden aria-live="polite"></p>
+      <button class="button" type="submit">Send invitation</button><p id="invite-status" class="status" hidden aria-live="polite"></p><button class="button" id="resend-invite" type="button" hidden>Replace pending invite and resend</button>
     </form></section>
-    <h2>Current members</h2><div id="list" aria-live="polite">Loading…</div>
+    <h2>Current members</h2><p class="lead">For an active member who cannot sign in, you can create a one-time password. They must replace it before entering the admin workspace. Share it separately—not by email or public message.</p><div id="temp-result" class="temp-result" hidden aria-live="polite"></div><div id="list" aria-live="polite">Loading…</div>
     <p><a href="/admin/content">Content management</a> · <a href="/admin">Admin workspace</a></p>
   </main>
   <script src="session-guard.js"></script>
@@ -27,19 +27,29 @@
     async function load(){
       const response=await fetch('/api/members',{credentials:'same-origin'}),data=await response.json();
       if(!response.ok)throw Error(data.error||'Unable to load members.');
-      list.innerHTML=data.map(member=>`<article class="card"><p><strong>${escapeText(member.email||'Email unavailable')}</strong><br><small>${escapeText(member.user_id)}</small></p><label class="field">Role<select data-id="${escapeText(member.id)}" data-kind="role"><option value="admin" ${member.role==='admin'?'selected':''}>Admin</option><option value="manager" ${member.role==='manager'?'selected':''}>Manager</option><option value="editor" ${member.role==='editor'?'selected':''}>Editor</option></select></label><label class="field">Status<select data-id="${escapeText(member.id)}" data-kind="status"><option value="active" ${member.status==='active'?'selected':''}>Active</option><option value="suspended" ${member.status==='suspended'?'selected':''}>Suspended</option><option value="invited" ${member.status==='invited'?'selected':''}>Invited</option></select></label></article>`).join('')||'<p>No members found.</p>';
+      list.innerHTML=data.map(member=>`<article class="card"><p><strong>${escapeText(member.email||'Email unavailable')}</strong><br><small>${escapeText(member.user_id)}</small></p><label class="field">Role<select data-id="${escapeText(member.id)}" data-kind="role"><option value="admin" ${member.role==='admin'?'selected':''}>Admin</option><option value="manager" ${member.role==='manager'?'selected':''}>Manager</option><option value="editor" ${member.role==='editor'?'selected':''}>Editor</option></select></label><label class="field">Status<select data-id="${escapeText(member.id)}" data-kind="status"><option value="active" ${member.status==='active'?'selected':''}>Active</option><option value="suspended" ${member.status==='suspended'?'selected':''}>Suspended</option><option value="invited" ${member.status==='invited'?'selected':''}>Invited</option></select></label>${member.role!=='owner'&&member.status==='active'?`<button class="button" type="button" data-temp-password="${escapeText(member.id)}" data-email="${escapeText(member.email||'this member')}">Set one-time password</button>`:''}</article>`).join('')||'<p>No members found.</p>';
       list.querySelectorAll('select').forEach(select=>select.onchange=async()=>{
         const id=select.dataset.id,fields={id};list.querySelectorAll(`[data-id="${id}"]`).forEach(field=>fields[field.dataset.kind]=field.value);
         try{const response=await fetch('/api/members',{method:'PATCH',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(fields)}),data=await response.json();if(!response.ok)throw Error(data.error||'Could not save member changes.');await load();}
         catch(error){inviteStatus.hidden=false;inviteStatus.textContent=error.message;await load().catch(()=>{});}
       });
+      list.querySelectorAll('[data-temp-password]').forEach(button=>button.onclick=async()=>{
+        if(!confirm(`This will replace the current password for ${button.dataset.email}. They must choose a new password before they can access the admin area. Continue?`))return;
+        button.disabled=true;const result=document.querySelector('#temp-result');result.hidden=false;result.textContent='Creating a one-time password…';
+        try{const response=await fetch('/api/member-temp-password',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_id:button.dataset.tempPassword})}),created=await response.json();if(!response.ok)throw Error(created.error||'Could not set a temporary password.');result.innerHTML=`<strong>One-time password for ${escapeText(created.email||button.dataset.email)}</strong><p><code>${escapeText(created.temporary_password)}</code></p><p>${escapeText(created.message)}</p><button class="button" id="copy-temp-password" type="button">Copy password</button>`;document.querySelector('#copy-temp-password').onclick=async()=>{try{await navigator.clipboard.writeText(created.temporary_password);document.querySelector('#copy-temp-password').textContent='Copied';}catch{result.querySelector('code').focus?.();}};}
+        catch(error){result.textContent=error.message;}
+        finally{button.disabled=false;}
+      });
     }
-    inviteForm.addEventListener('submit',async event=>{
-      event.preventDefault();const button=inviteForm.querySelector('button');button.disabled=true;inviteStatus.hidden=false;inviteStatus.textContent='Sending invitation…';
-      try{const response=await fetch('/api/invite-member',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(inviteForm)))}),data=await response.json();if(!response.ok)throw Error(data.error||'Invitation failed.');inviteStatus.textContent=data.message;inviteForm.reset();await load();}
+    const resendButton=document.querySelector('#resend-invite');
+    async function sendInvite(replacePending=false){
+      const submitButton=inviteForm.querySelector('[type="submit"]');submitButton.disabled=true;resendButton.hidden=true;inviteStatus.hidden=false;inviteStatus.textContent=replacePending?'Replacing the unconfirmed invitation and sending a fresh link…':'Sending invitation…';
+      try{const payload=Object.fromEntries(new FormData(inviteForm));if(replacePending)payload.resend_pending=true;const response=await fetch('/api/invite-member',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),data=await response.json();if(!response.ok){if(data.code==='pending_invite'){inviteForm.elements.role.value=data.role||'admin';resendButton.hidden=false;inviteStatus.textContent=`${data.error} The current role is ${data.role||'admin'}. Click the button below only if the previous link is unusable.`;return;}throw Error(data.error||'Invitation failed.');}inviteStatus.textContent=data.message;inviteForm.reset();await load();}
       catch(error){inviteStatus.textContent=error.message;}
-      finally{button.disabled=false;}
-    });
+      finally{submitButton.disabled=false;}
+    }
+    inviteForm.addEventListener('submit',event=>{event.preventDefault();sendInvite(false)});
+    resendButton.addEventListener('click',()=>{if(confirm('This will remove only the unconfirmed pending Auth account and its invited member row, then send a fresh invitation to this email. Active or confirmed accounts will not be removed. Continue?'))sendInvite(true)});
     load().catch(error=>list.textContent=error.message);
   </script>
 <script src="/theme.js" defer></script></body>

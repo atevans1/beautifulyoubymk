@@ -14,6 +14,7 @@ export default async function handler(req,res){
   const auth=await fetch(`${url}/auth/v1/user`,{headers:{apikey:anon,Authorization:`Bearer ${token}`}});
   if(!auth.ok) return res.status(401).json({error:'Sign-in expired.'});
   const user=await auth.json();
+  if(user.app_metadata?.beautiful_you_force_password_change===true)return res.status(403).json({password_change_required:true,error:'Choose a new password before continuing.'});
   const serviceHeaders={apikey:service,'Accept-Profile':'beautiful_you'};
   const membership=await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&status=eq.active&select=role`,{headers:serviceHeaders});
   if(!membership.ok) return res.status(503).json({error:'Unable to verify Beautiful You membership.'});
