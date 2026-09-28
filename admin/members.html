@@ -10,13 +10,13 @@
   <main>
     <a class="back" href="/admin">← Admin workspace</a><p class="eyebrow">Owner workspace</p>
     <h1>Members</h1><p class="lead">Invite approved staff and manage their role and status. Your owner account cannot be changed here.</p>
-    <section class="invite"><h2>Invite a member</h2><p>They’ll first verify their email using the invitation link. After their status becomes Active, set a one-time password below and share it separately. They must replace it before they can enter the admin area.</p><form id="invite-form">
+    <p id="owner-denied" class="status" hidden aria-live="polite">Member management is available to the site owner only.</p><div id="owner-tools" hidden><section class="invite"><h2>Invite a member</h2><p>They’ll first verify their email using the invitation link. After their status becomes Active, set a one-time password below and share it separately. They must replace it before they can enter the admin area.</p><form id="invite-form">
       <label class="field">Email<input name="email" type="email" autocomplete="email" maxlength="254" required></label>
       <label class="field">Role<select name="role"><option value="admin">Admin</option><option value="manager">Manager</option><option value="editor">Editor</option></select></label>
       <button class="button" type="submit">Send invitation</button><p id="invite-status" class="status" hidden aria-live="polite"></p><button class="button" id="resend-invite" type="button" hidden>Replace pending invite and resend</button>
     </form></section>
     <h2>Current members</h2><p class="lead">For an active member who cannot sign in, you can create a one-time password. They must replace it before entering the admin workspace. Share it separately—not by email or public message.</p><div id="temp-result" class="temp-result" hidden aria-live="polite"></div><div id="list" aria-live="polite">Loading…</div>
-    <p><a href="/admin/content">Content management</a> · <a href="/admin">Admin workspace</a></p>
+    <p><a href="/admin/content">Content management</a> · <a href="/admin">Admin workspace</a></p></div>
   </main>
   <script src="session-guard.js"></script>
   <script>
@@ -50,7 +50,11 @@
     }
     inviteForm.addEventListener('submit',event=>{event.preventDefault();sendInvite(false)});
     resendButton.addEventListener('click',()=>{if(confirm('This will remove only the unconfirmed pending Auth account and its invited member row, then send a fresh invitation to this email. Active or confirmed accounts will not be removed. Continue?'))sendInvite(true)});
-    load().catch(error=>list.textContent=error.message);
+    async function initializeOwnerTools(){
+      try{const response=await fetch('/api/session',{credentials:'same-origin'}),session=await response.json();if(!response.ok)throw Error(session.error||'Sign-in required.');if(session.role!=='owner'){document.querySelector('#owner-denied').hidden=false;return;}document.querySelector('#owner-tools').hidden=false;await load();}
+      catch(error){document.querySelector('#owner-denied').hidden=false;document.querySelector('#owner-denied').textContent=error.message;}
+    }
+    initializeOwnerTools();
   </script>
 <script src="/theme.js" defer></script></body>
 </html>
