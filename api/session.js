@@ -1,4 +1,4 @@
-import {readAccessToken,clearSessionCookie} from './_auth.js';
+import {readAccessToken,clearSessionCookie,setTemporaryAccessCookie} from './_auth.js';
 export default async function handler(req,res){
   if(req.method==='DELETE'){clearSessionCookie(res);return res.status(204).end();}
   if(req.method!=='GET') return res.status(405).json({error:'Method not allowed'});
@@ -7,6 +7,7 @@ export default async function handler(req,res){
   const auth=await fetch(`${url}/auth/v1/user`,{headers:{apikey:anon,Authorization:`Bearer ${token}`}});
   if(!auth.ok){clearSessionCookie(res);return res.status(401).json({error:'Sign-in expired.'});}
   const user=await auth.json();
+  if(user.app_metadata?.beautiful_you_force_password_change===true){setTemporaryAccessCookie(res,token,3600);clearSessionCookie(res);return res.status(403).json({password_change_required:true,error:'Choose a new password before continuing.'});}
   const membership=await fetch(`${url}/rest/v1/members?user_id=eq.${user.id}&status=eq.active&select=role,status`,{headers:{apikey:service,'Accept-Profile':'beautiful_you'}});
   if(!membership.ok) return res.status(503).json({error:'Supabase cannot read beautiful_you.members. Check that the schema is exposed in Supabase Data API and that the server key is configured in Vercel.'});
   const rows=await membership.json();

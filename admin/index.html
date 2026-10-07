@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin workspace | Beautiful You By M.K.</title><meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="../site.css"></head>
 <body><main><a class="back" href="/">← Public site</a><p class="eyebrow">Beautiful You By M.K.</p><h1>Admin workspace</h1><p class="lead">Choose an area you are authorised to manage.</p>
 <div class="cards">
-  <article><h2>Members</h2><p>Invite staff and manage access.</p><a href="/admin/members">Manage members →</a></article>
+  <article data-owner-only><h2>Members</h2><p>Invite staff and manage access.</p><a href="/admin/members">Manage members →</a></article>
   <article><h2>Programmes</h2><p>Review programme records.</p><a href="/admin/programmes">Manage programmes →</a></article>
   <article><h2>Gallery</h2><p>Review images and consent.</p><a href="/admin/gallery">Manage gallery →</a></article>
   <article><h2>Resources</h2><p>Manage articles and guidance.</p><a href="/admin/resources">Manage resources →</a></article>
@@ -10,4 +10,4 @@
   <article><h2>Help requests</h2><p>Review confidential support submissions.</p><a href="/admin/help-requests">Open inbox →</a></article>
   <article><h2>Case notes</h2><p>Record private follow-up notes.</p><a href="/admin/case-notes">Open case notes →</a></article>
 </div>
-<p><button class="button" id="sign-out">Sign out</button></p></main><script src="session-guard.js"></script><script>document.querySelector('#sign-out').onclick=()=>{fetch('/api/session',{method:'DELETE'}).finally(()=>location.href='/admin/login')};</script><script src="/theme.js" defer></script></body></html>
+<p><button class="button" id="sign-out">Sign out</button></p></main><script src="session-guard.js"></script><script>fetch('/api/session',{credentials:'same-origin'}).then(response=>response.ok?response.json():null).then(session=>{if(session&&session.role!=='owner')document.querySelector('[data-owner-only]')?.remove()}).catch(()=>{});document.querySelector('#sign-out').onclick=()=>{fetch('/api/session',{method:'DELETE'}).finally(()=>location.href='/admin/login')};</script><script src="/theme.js" defer></script></body></html>

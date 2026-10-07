@@ -27,6 +27,7 @@ export default async function handler(req,res){
   if(!bucket)return res.status(503).json({error:'Gallery uploads are not configured yet. The site owner must set SUPABASE_GALLERY_BUCKET in Vercel to an existing public bucket dedicated to consent-approved gallery images.'});
   const auth=await fetch(`${url}/auth/v1/user`,{headers:{apikey:anon,Authorization:`Bearer ${token}`}});if(!auth.ok)return res.status(401).json({error:'Sign-in expired. Sign in again and retry.'});
   const user=await auth.json();
+  if(user.app_metadata?.beautiful_you_force_password_change===true)return res.status(403).json({password_change_required:true,error:'Choose a new password before continuing.'});
   const membership=await fetch(`${url}/rest/v1/members?user_id=eq.${encodeURIComponent(user.id)}&status=eq.active&select=role`,{headers:{apikey:service,'Accept-Profile':'beautiful_you'}});
   if(!membership.ok)return res.status(503).json({error:'Unable to verify Beautiful You membership.'});
   const roles=(await membership.json()).map(item=>item.role);if(!roles.some(role=>['owner','admin','manager'].includes(role)))return res.status(403).json({error:'Only owners, admins and managers can upload gallery photos.'});
