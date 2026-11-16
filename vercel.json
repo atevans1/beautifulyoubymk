@@ -29,6 +29,9 @@
     ,{"source":"/admin/content","destination":"/admin/content.html"}
     ,{"source":"/admin/enquiries","destination":"/admin/enquiries.html"}
     ,{"source":"/members","destination":"/admin/members.html"}
+  ],
+  "routes": [
+    {"src":"/gallery/([^/]+)","dest":"/gallery?album=$1"}
   ]
 }
 
