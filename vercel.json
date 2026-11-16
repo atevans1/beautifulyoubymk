@@ -5,7 +5,7 @@
   "rewrites": [
     {"source":"/about","destination":"/about.html"},
     {"source":"/programmes","destination":"/programmes.html"},
-    {"source":"/gallery/:slug*","destination":"/gallery.html?album=:slug*"},
+    {"source":"/gallery/:slug","destination":"/gallery.html?album=:slug"},
     {"source":"/gallery","destination":"/gallery.html"},
     {"source":"/partner-enquiry","destination":"/partner-enquiry.html"},
     {"source":"/donation-interest","destination":"/donation-interest.html"},
@@ -31,3 +31,4 @@
     ,{"source":"/members","destination":"/admin/members.html"}
   ]
 }
+
