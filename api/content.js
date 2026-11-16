@@ -1,8 +1,9 @@
 import {readAccessToken} from './_auth.js';
 const allowedTables=new Set(['posts','programmes','gallery_items']);
-const editableFields={posts:new Set(['title','slug','excerpt','body','content_type','category','status']),programmes:new Set(['name','slug','summary','description','eligibility','status']),gallery_items:new Set(['title','image_url','caption','category','consent_confirmed','status','sort_order'])};
+const editableFields={posts:new Set(['title','slug','excerpt','body','content_type','category','status']),programmes:new Set(['name','slug','summary','description','eligibility','status']),gallery_items:new Set(['title','image_url','caption','category','consent_confirmed','status','sort_order','album_id','alt_text','photographer_credit','featured','is_comparison','comparison_approved','event_date','storage_path','thumbnail_path'])};
 const rolesAllowed=new Set(['owner','admin','manager','editor']);
 function pickFields(input,allowed){return Object.fromEntries(Object.entries(input||{}).filter(([key])=>allowed.has(key)));}
+async function validGalleryCategory(url,service,name){if(name==null||name==='')return true;const result=await fetch(`${url}/rest/v1/gallery_categories?select=id&name=eq.${encodeURIComponent(String(name))}&active=eq.true&limit=1`,{headers:{apikey:service,'Accept-Profile':'beautiful_you'}});return result.ok&&(await result.json()).length>0;}
 export default async function handler(req,res){
   const token=readAccessToken(req);
   const table=String(req.query?.table||'');
@@ -30,8 +31,10 @@ export default async function handler(req,res){
   const writeHeaders={...serviceHeaders,'Content-Type':'application/json','Content-Profile':'beautiful_you',Prefer:'return=representation'};
   if(req.method==='POST'){
     const body=pickFields(req.body,editableFields[table]);
+    if(table==='gallery_items'&&!await validGalleryCategory(url,service,body.category))return res.status(400).json({error:'Choose an active gallery category from Gallery Management.'});
     if(role==='editor'&&body.status==='published') return res.status(403).json({error:'Editors can save drafts but cannot publish.'});
     if(table==='gallery_items'&&body.status==='published'&&body.consent_confirmed!==true) return res.status(400).json({error:'Confirm documented consent before publishing this image.'});
+    if(table==='gallery_items'&&body.status==='published'&&body.is_comparison===true&&body.comparison_approved!==true)return res.status(400).json({error:'Confirm explicit approval before publishing this before-and-after comparison.'});
     body.created_by=user.id;
     const result=await fetch(endpoint,{method:'POST',headers:writeHeaders,body:JSON.stringify(body)});
     return res.status(result.status).json(await result.json());
@@ -40,13 +43,21 @@ export default async function handler(req,res){
     const id=req.body?.id;
     if(!id) return res.status(400).json({error:'A record ID is required.'});
     const changes=pickFields(req.body,editableFields[table]);
+    if(table==='gallery_items'&&Object.hasOwn(changes,'category')&&!await validGalleryCategory(url,service,changes.category))return res.status(400).json({error:'Choose an active gallery category from Gallery Management.'});
     if(role==='editor'&&changes.status!=='draft') return res.status(403).json({error:'Editors can only manage draft content.'});
-    if(table==='gallery_items'&&changes.status==='published'&&changes.consent_confirmed!==true) return res.status(400).json({error:'Confirm documented consent before publishing this image.'});
+    if(table==='gallery_items'){
+      const currentResult=await fetch(`${endpoint}?id=eq.${encodeURIComponent(id)}&select=consent_confirmed,category,comparison_approved,is_comparison,status,title,caption`,{headers:serviceHeaders});
+      if(!currentResult.ok)return res.status(502).json({error:'Unable to verify the gallery record before publishing.'});
+      const current=(await currentResult.json())[0]||{},next={...current,...changes};
+      if(next.status==='published'&&next.consent_confirmed!==true)return res.status(400).json({error:'Confirm documented consent before publishing this image.'});
+      if(next.status==='published'&&next.is_comparison===true&&next.comparison_approved!==true)return res.status(400).json({error:'Confirm explicit approval before publishing this before-and-after comparison.'});
+    }
     if(table!=='gallery_items') changes.updated_by=user.id;
     const result=await fetch(`${endpoint}?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:writeHeaders,body:JSON.stringify(changes)});
     return res.status(result.status).json(await result.json());
   }
   if(req.method==='DELETE'){
+    if(table==='gallery_items')return res.status(405).json({error:'Gallery media cannot be deleted here. Archive the record to withdraw it from public view; its stored files will be retained.'});
     if(role==='editor') return res.status(403).json({error:'Editors cannot delete content.'});
     const id=req.body?.id;
     if(!id) return res.status(400).json({error:'A record ID is required.'});

@@ -1,4 +1,4 @@
-const allowed={programmes:{table:'programmes',filter:'status=eq.published'},posts:{table:'posts',filter:'status=eq.published'},gallery:{table:'gallery_items',filter:'status=eq.published&consent_confirmed=eq.true'}};
+const allowed={programmes:{table:'programmes',filter:'status=eq.published'},posts:{table:'posts',filter:'status=eq.published'},gallery:{table:'gallery_items',filter:'status=eq.published&consent_confirmed=eq.true&storage_path=is.null'}};
 export default async function handler(req,res){
   if(req.method!=='GET') return res.status(405).json({error:'Method not allowed'});
   const config=allowed[req.query?.type];
