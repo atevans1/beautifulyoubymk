@@ -31,7 +31,8 @@
     ,{"source":"/members","destination":"/admin/members.html"}
   ],
   "routes": [
+    {"src":"/resources/([^/]+)","dest":"/api/article-page?slug=$1"},
+    {"src":"/sitemap\\.xml","dest":"/api/editorial-sitemap"},
     {"src":"/gallery/([^/]+)","dest":"/gallery?album=$1"}
   ]
 }
-
